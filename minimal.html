@@ -1,0 +1,43 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Minimal Server Sim Probe</title></head>
+<body>
+<canvas id="game" width="800" height="500"></canvas>
+<script>
+window.__DELTA_GAME_CONFIG__ = {
+  id: 'minimal-probe',
+  title: 'Minimal Probe',
+  minPlayers: 1,
+  maxPlayers: 4,
+  tickRate: 30,
+  snapshotRateHz: 20,
+  networkProfile: { class: 'realtime', authority: 'server_sim', usesContinuousTick: true },
+  initState() {
+    return { phase: 'lobby', players: {}, tick: 0, t: 0 };
+  },
+  initPlayer(uid, info) {
+    return { user_id: uid, name: info?.name || uid, x: 100, y: 100, dx: 0, dy: 0 };
+  },
+  onAction(state, action, uid) {
+    if (!state.players[uid]) state.players[uid] = this.initPlayer(uid, {});
+    const p = state.players[uid];
+    if (action.type === 'START') state.phase = 'playing';
+    if (action.type === 'MOVE') { p.dx = +action.dx || 0; p.dy = +action.dy || 0; }
+    if (action.type === 'STOP') { p.dx = 0; p.dy = 0; }
+    return state;
+  },
+  onTick(state, dt) {
+    state.tick++;
+    state.t += dt;
+    if (state.phase === 'playing') {
+      for (const p of Object.values(state.players)) {
+        p.x += p.dx * 200 * dt;
+        p.y += p.dy * 200 * dt;
+      }
+    }
+    return state;
+  },
+};
+</script>
+</body>
+</html>
